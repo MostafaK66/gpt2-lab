@@ -8,10 +8,12 @@ version = "0.1.0"
 description = "A small, well-separated GPT-2 training codebase."
 readme = "README.md"
 requires-python = ">=3.10"
+
 dependencies = [
     "torch>=2.4",
     "tiktoken>=0.5",
     "matplotlib>=3.7",
+    "requests>=2.0",
 ]
 
 [project.optional-dependencies]
