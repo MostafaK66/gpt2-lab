@@ -1,16 +1,16 @@
-# Byte-compiled / caches
+# Byte-compiled files and caches
 __pycache__/
 *.py[cod]
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
 
-# Environments
+# Virtual environments
 .venv/
 venv/
 env/
 
-# Packaging
+# Packaging artifacts
 build/
 dist/
 *.egg-info/
@@ -18,7 +18,15 @@ dist/
 # PyCharm
 .idea/
 
-# Run artifacts
+# Test coverage
+.coverage
+htmlcov/
+
+# Operating-system files
+.DS_Store
+Thumbs.db
+
+# Training and run artifacts
 data/
 checkpoints/
 plots/
