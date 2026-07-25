@@ -1,20 +1,26 @@
+# Byte-compiled / caches
 __pycache__/
 *.py[cod]
-*.egg-info/
-dist/
-build/
-*.egg
-.eggs/
-*.so
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Environments
 .venv/
 venv/
 env/
-.idea/
-*.pt
-*.pth
-checkpoints/
-data/
-*.log
-.DS_Store
-Thumbs.db
 
+# Packaging
+build/
+dist/
+*.egg-info/
+
+# PyCharm
+.idea/
+
+# Run artifacts
+data/
+checkpoints/
+plots/
+runs/
+*.log
