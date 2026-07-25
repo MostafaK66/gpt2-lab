@@ -1,11 +1,24 @@
-from .sections import (
-    ModelConfig,
+"""Typed, self-validating experiment configuration."""
+
+from gpt2lab.config.experiment import ExperimentConfig
+from gpt2lab.config.sections import (
     DataConfig,
+    MetricsConfig,
+    ModelConfig,
+    OptimizerConfig,
+    PlotConfig,
+    RuntimeConfig,
     TrainingConfig,
-    EvalConfig,
-    CheckpointConfig,
-    VizConfig,
-    SamplingConfig,
 )
-from .experiment import ExperimentConfig
+
+__all__ = [
+    "DataConfig",
+    "ExperimentConfig",
+    "MetricsConfig",
+    "ModelConfig",
+    "OptimizerConfig",
+    "PlotConfig",
+    "RuntimeConfig",
+    "TrainingConfig",
+]
 
