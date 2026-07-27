@@ -27,8 +27,7 @@ htmlcov/
 Thumbs.db
 
 # Training and run artifacts
-data/
+
 checkpoints/
-plots/
 runs/
 *.log
