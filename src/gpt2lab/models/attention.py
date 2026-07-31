@@ -22,6 +22,12 @@ class CausalSelfAttention(nn.Module):
     def __init__(self, config: ModelConfig) -> None:
         super().__init__()
 
+        if config.n_embd % config.n_head != 0:
+            raise ValueError(
+                f"n_embd must be divisible by n_head "
+                f"(received n_embd={config.n_embd}, n_head={config.n_head})."
+            )
+
         self.n_head = config.n_head
         self.n_embd = config.n_embd
         self.head_size = config.head_size
