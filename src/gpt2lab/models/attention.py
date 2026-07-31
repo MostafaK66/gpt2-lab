@@ -33,7 +33,15 @@ class CausalSelfAttention(nn.Module):
         self.head_size = config.head_size
 
         # Query, key and value projections fused into one matmul.
-        self.c_attn = nn.Linear(config.n_embd, 3 * config.n_embd)
+        # Output dimension must be exactly 3 * n_embd so the split produces
+        # three equal tensors: query, key, value — each of size n_embd.
+        qkv_size = 3 * config.n_embd
+        if qkv_size % 3 != 0 or qkv_size // 3 != config.n_embd:
+            raise ValueError(
+                f"c_attn output size must be 3 * n_embd "
+                f"(expected {3 * config.n_embd}, got {qkv_size})."
+            )
+        self.c_attn = nn.Linear(config.n_embd, qkv_size)
 
         # Recombines the per-head outputs; this is the residual output
         # projection, hence the scaled initialization.
