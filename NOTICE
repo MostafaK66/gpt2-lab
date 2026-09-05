@@ -1,0 +1,12 @@
+gpt2-lab
+========
+
+Copyright (c) 2026 Mostafa Karimzadeh.
+
+This production-quality repository is a restructuring of the original
+gpt2-lab practice project at https://github.com/MostafaK66/gpt2-lab. The Git
+history is retained as the primary attribution record.
+
+GPT-2 is a model architecture introduced by OpenAI. This repository is an
+independent educational implementation and does not distribute OpenAI model
+weights or training data.

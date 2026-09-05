@@ -1,33 +1,38 @@
-# Byte-compiled files and caches
+# Python caches and tooling
 __pycache__/
 *.py[cod]
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
+.coverage
+htmlcov/
 
-# Virtual environments
+# Environments and packaging
 .venv/
 venv/
-env/
-
-# Packaging artifacts
 build/
 dist/
 *.egg-info/
 
-# PyCharm
+# Editors and operating systems
 .idea/
-
-# Test coverage
-.coverage
-htmlcov/
-
-# Operating-system files
+.vscode/
 .DS_Store
 Thumbs.db
 
-# Training and run artifacts
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+*.local.toml
 
-checkpoints/
-runs/
+# Training outputs and downloaded data
+/checkpoints/
+/data/
+/models/
+/plots/
+/runs/
 *.log
+*.pt
+*.pth
+*.bin

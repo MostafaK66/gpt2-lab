@@ -1,0 +1,55 @@
+name = "tiny-shakespeare-practice"
+
+[data]
+source_url = "https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt"
+file_name = "tinyshakespeare.txt"
+cache_dir = "data"
+tokenizer_name = "gpt2"
+batch_size = 4
+sequence_length = 128
+validation_fraction = 0.1
+pin_memory = true
+
+[runtime]
+seed = 1337
+device = "auto"
+deterministic = false
+use_mixed_precision = true
+mixed_precision_dtype = "float16"
+
+[model]
+block_size = 128
+n_layer = 4
+n_head = 4
+n_embd = 256
+mlp_ratio = 4
+dropout = 0.0
+bias = true
+init_std = 0.02
+
+[optimizer]
+learning_rate = 0.0003
+weight_decay = 0.1
+beta1 = 0.9
+beta2 = 0.95
+epsilon = 1e-8
+grad_clip_norm = 1.0
+schedule = "cosine"
+warmup_steps = 100
+min_learning_rate = 0.00003
+
+[training]
+num_steps = 5000
+log_every = 10
+eval_every = 250
+eval_steps = 20
+checkpoint_every = 1000
+checkpoint_dir = "checkpoints"
+keep_last_checkpoints = 3
+save_final_checkpoint = true
+metrics_csv = "runs/metrics.csv"
+
+[sampling]
+max_new_tokens = 200
+temperature = 0.8
+top_k = 40

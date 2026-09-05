@@ -1,35 +1,49 @@
-"""Optimizer and LR schedule."""
+"""AdamW construction and learning-rate scheduling."""
+
 from __future__ import annotations
 
 import math
+
 import torch
 
-from ..config.sections import TrainingConfig
+from gpt2lab.config import OptimizerConfig
 
 
-def build_optimizer(model: torch.nn.Module, cfg: TrainingConfig) -> torch.optim.AdamW:
-    # separate weight-decay and no-decay groups
-    decay, no_decay = [], []
-    for name, param in model.named_parameters():
-        if not param.requires_grad:
+def build_optimizer(model: torch.nn.Module, config: OptimizerConfig) -> torch.optim.AdamW:
+    """Build AdamW with matrix-only weight decay."""
+    decay: list[torch.nn.Parameter] = []
+    no_decay: list[torch.nn.Parameter] = []
+    for parameter in model.parameters():
+        if not parameter.requires_grad:
             continue
-        if param.dim() < 2 or "bias" in name or "ln_" in name or "layernorm" in name.lower():
-            no_decay.append(param)
-        else:
-            decay.append(param)
+        (decay if parameter.ndim >= 2 else no_decay).append(parameter)
     groups = [
-        {"params": decay, "weight_decay": cfg.weight_decay},
+        {"params": decay, "weight_decay": config.weight_decay},
         {"params": no_decay, "weight_decay": 0.0},
     ]
-    return torch.optim.AdamW(groups, lr=cfg.learning_rate, betas=(cfg.beta1, cfg.beta2))
+    return torch.optim.AdamW(
+        groups,
+        lr=config.learning_rate,
+        betas=config.betas,
+        eps=config.epsilon,
+    )
 
 
-def cosine_lr(step: int, cfg: TrainingConfig) -> float:
-    if step < cfg.warmup_steps:
-        return cfg.learning_rate * step / cfg.warmup_steps
-    if step > cfg.lr_decay_steps:
-        return cfg.min_lr
-    ratio = (step - cfg.warmup_steps) / (cfg.lr_decay_steps - cfg.warmup_steps)
-    coeff = 0.5 * (1.0 + math.cos(math.pi * ratio))
-    return cfg.min_lr + coeff * (cfg.learning_rate - cfg.min_lr)
-
+def learning_rate_at(step: int, total_steps: int, config: OptimizerConfig) -> float:
+    """Return the configured constant or warmup-plus-cosine learning rate."""
+    if step < 0:
+        raise ValueError("step cannot be negative")
+    if total_steps <= 0:
+        raise ValueError("total_steps must be positive")
+    if config.schedule == "constant":
+        return config.learning_rate
+    if config.warmup_steps and step < config.warmup_steps:
+        return config.learning_rate * (step + 1) / config.warmup_steps
+    if step >= total_steps:
+        return config.min_learning_rate
+    decay_steps = total_steps - config.warmup_steps
+    progress = (step - config.warmup_steps) / max(decay_steps, 1)
+    coefficient = 0.5 * (1.0 + math.cos(math.pi * progress))
+    return config.min_learning_rate + coefficient * (
+        config.learning_rate - config.min_learning_rate
+    )

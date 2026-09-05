@@ -1,15 +1,18 @@
 """Live training plotter."""
+
 from __future__ import annotations
 
 import matplotlib.pyplot as plt
 
-from ..training.metrics import Metrics
 from ..training.callbacks import Callback
+from ..training.metrics import Metrics
 from .panels import loss_panel, lr_panel
 
 
 class LivePlotter(Callback):
     def __init__(self, plot_interval: int = 50) -> None:
+        if plot_interval <= 0:
+            raise ValueError("plot_interval must be positive")
         self.plot_interval = plot_interval
         self.fig, self.axes = plt.subplots(1, 2, figsize=(12, 4))
         plt.ion()
@@ -34,4 +37,3 @@ class LivePlotter(Callback):
         self.fig.canvas.draw_idle()
         plt.ioff()
         plt.show()
-

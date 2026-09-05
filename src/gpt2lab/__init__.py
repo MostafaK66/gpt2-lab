@@ -1,8 +1,8 @@
-"""gpt2-lab: a small, well-separated GPT-2 training codebase."""
+"""A small, maintainable GPT-2 training lab."""
 
 from gpt2lab.config import ExperimentConfig
-from gpt2lab.experiment import Experiment
+from gpt2lab.models import GPT
 
-__all__ = ["Experiment", "ExperimentConfig", "__version__"]
+__all__ = ["GPT", "ExperimentConfig", "__version__"]
 
-__version__ = "0.1.0"
+__version__ = "1.0.0"

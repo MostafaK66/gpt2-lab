@@ -1,0 +1,14 @@
+# gpt2-lab repository map
+
+README.md: installation, CLI usage, configuration, and architecture overview.
+configs/example.toml: documented small training configuration.
+src/gpt2lab/config/: immutable validated configuration and TOML loading.
+src/gpt2lab/data/: injected corpus retrieval, tokenization, and sequential batches.
+src/gpt2lab/models/: GPT-2 attention, transformer block, MLP, and model.
+src/gpt2lab/training/: runtime, optimizer, metrics, checkpoints, and trainer.
+src/gpt2lab/experiment.py: composition root for training and sampling.
+src/gpt2lab/cli.py: thin `train`, `sample`, and `config` commands.
+tests/: deterministic CPU-only unit and integration tests.
+.github/workflows/ci.yml: Python 3.11/3.12 quality gates.
+
+Generated data, checkpoints, and plots are intentionally ignored by Git.

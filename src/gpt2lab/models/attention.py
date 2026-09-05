@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -22,12 +24,6 @@ class CausalSelfAttention(nn.Module):
     def __init__(self, config: ModelConfig) -> None:
         super().__init__()
 
-        if config.n_embd % config.n_head != 0:
-            raise ValueError(
-                f"n_embd must be divisible by n_head "
-                f"(received n_embd={config.n_embd}, n_head={config.n_head})."
-            )
-
         self.n_head = config.n_head
         self.n_embd = config.n_embd
         self.head_size = config.head_size
@@ -35,18 +31,14 @@ class CausalSelfAttention(nn.Module):
         # Query, key and value projections fused into one matmul.
         # Output dimension must be exactly 3 * n_embd so the split produces
         # three equal tensors: query, key, value — each of size n_embd.
-        qkv_size = 3 * config.n_embd
-        if qkv_size % 3 != 0 or qkv_size // 3 != config.n_embd:
-            raise ValueError(
-                f"c_attn output size must be 3 * n_embd "
-                f"(expected {3 * config.n_embd}, got {qkv_size})."
-            )
-        self.c_attn = nn.Linear(config.n_embd, qkv_size)
+        self.c_attn = nn.Linear(config.n_embd, 3 * config.n_embd, bias=config.bias)
 
         # Recombines the per-head outputs; this is the residual output
         # projection, hence the scaled initialization.
-        self.c_proj = nn.Linear(config.n_embd, config.n_embd)
+        self.c_proj = nn.Linear(config.n_embd, config.n_embd, bias=config.bias)
         mark_residual_projection(self.c_proj)
+        self.dropout = config.dropout
+        self.resid_dropout = nn.Dropout(config.dropout)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         batch, time, channels = x.shape
@@ -66,7 +58,7 @@ class CausalSelfAttention(nn.Module):
             key,
             value,
             attn_mask=None,
-            dropout_p=0.0,
+            dropout_p=self.dropout if self.training else 0.0,
             is_causal=True,
         )
 
@@ -74,10 +66,9 @@ class CausalSelfAttention(nn.Module):
         merged = (
             attended.transpose(1, 2).contiguous().reshape(batch, time, channels)
         )
-        return self.c_proj(merged)
+        return cast(torch.Tensor, self.resid_dropout(self.c_proj(merged)))
 
     def _split_heads(
         self, tensor: torch.Tensor, batch: int, time: int
     ) -> torch.Tensor:
         return tensor.reshape(batch, time, self.n_head, self.head_size).transpose(1, 2)
-
