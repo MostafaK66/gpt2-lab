@@ -7,6 +7,9 @@ its own role at construction time.
 
 from __future__ import annotations
 
+import math
+from typing import TypeVar
+
 import torch.nn as nn
 
 __all__ = [
@@ -16,9 +19,10 @@ __all__ = [
 ]
 
 _RESIDUAL_FLAG = "_gpt2lab_residual_projection"
+_Module = TypeVar("_Module", bound=nn.Module)
 
 
-def mark_residual_projection(module: nn.Module) -> nn.Module:
+def mark_residual_projection(module: _Module) -> _Module:
     """Flag ``module`` as the output projection of a residual branch."""
     setattr(module, _RESIDUAL_FLAG, True)
     return module
@@ -44,7 +48,7 @@ class WeightInitializer:
             raise ValueError(f"n_layer must be positive (received {n_layer}).")
 
         self._init_std = init_std
-        self._residual_std = init_std * (2 * n_layer) ** -0.5
+        self._residual_std = init_std / math.sqrt(2 * n_layer)
 
     @property
     def init_std(self) -> float:
@@ -63,4 +67,3 @@ class WeightInitializer:
 
         elif isinstance(module, nn.Embedding):
             nn.init.normal_(module.weight, mean=0.0, std=self._init_std)
-

@@ -1,6 +1,0 @@
--e .[dev]
-
-
-matplotlib~=3.11.1
-tiktoken~=0.8.0
-torch~=2.8.0

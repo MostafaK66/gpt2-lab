@@ -37,6 +37,7 @@ class GPT(nn.Module):
         )
 
         self.lm_head = nn.Linear(config.n_embd, vocab_size, bias=False)
+        self.dropout = nn.Dropout(config.dropout)
 
         self.apply(WeightInitializer(config.init_std, config.n_layer))
 
@@ -80,7 +81,19 @@ class GPT(nn.Module):
             ``(logits, loss)`` where ``logits`` has shape ``[B, T, vocab_size]``
             and ``loss`` is ``None`` when ``targets`` is omitted.
         """
-        batch, time = idx.shape
+        if idx.ndim != 2:
+            raise ValueError(f"idx must have shape [batch, time]; got {tuple(idx.shape)}")
+        if idx.dtype != torch.long:
+            raise ValueError("idx must have torch.long dtype")
+        if targets is not None and targets.shape != idx.shape:
+            raise ValueError("targets must have the same shape as idx")
+        if targets is not None and targets.dtype != torch.long:
+            raise ValueError("targets must have torch.long dtype")
+
+        _, time = idx.shape
+
+        if time == 0:
+            raise ValueError("input sequence must not be empty")
 
         if time > self.config.block_size:
             raise ValueError(
@@ -94,7 +107,7 @@ class GPT(nn.Module):
         position_embeddings = self.transformer["wpe"](positions)  # [T, C]
 
         # [T, C] broadcasts across the batch dimension.
-        x = token_embeddings + position_embeddings
+        x = self.dropout(token_embeddings + position_embeddings)
 
         for block in self.transformer["h"]:
             x = block(x)
@@ -129,6 +142,8 @@ class GPT(nn.Module):
             raise ValueError("max_new_tokens must be positive.")
         if temperature <= 0:
             raise ValueError("temperature must be greater than zero.")
+        if top_k is not None and top_k <= 0:
+            raise ValueError("top_k must be positive when provided.")
 
         was_training = self.training
         self.eval()
@@ -150,4 +165,3 @@ class GPT(nn.Module):
             self.train(was_training)
 
         return idx
-
