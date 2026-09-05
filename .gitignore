@@ -27,11 +27,11 @@ Thumbs.db
 *.local.toml
 
 # Training outputs and downloaded data
-checkpoints/
-data/
-models/
-plots/
-runs/
+/checkpoints/
+/data/
+/models/
+/plots/
+/runs/
 *.log
 *.pt
 *.pth

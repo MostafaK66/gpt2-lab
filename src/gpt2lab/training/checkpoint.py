@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 
 import torch
 
@@ -110,7 +110,7 @@ class CheckpointManager:
             if optimizer is not None and optimizer_state is not None:
                 if not isinstance(optimizer_state, Mapping):
                     raise CheckpointError("checkpoint optimizer state is invalid")
-                optimizer.load_state_dict(optimizer_state)
+                optimizer.load_state_dict(cast(dict[str, Any], optimizer_state))
             metrics = Metrics(
                 train_losses=list(cast(list[float], metrics_state["train_losses"])),
                 val_losses=list(cast(list[float], metrics_state["val_losses"])),

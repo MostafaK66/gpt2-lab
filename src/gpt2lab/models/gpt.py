@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -44,13 +46,29 @@ class GPT(nn.Module):
         # Weight tying happens *after* initialization so the shared matrix
         # carries exactly one draw (the token-embedding one) instead of being
         # overwritten a second time through the lm_head alias.
-        self.lm_head.weight = self.transformer["wte"].weight
+        self.lm_head.weight = self._token_embeddings.weight
+
+    @property
+    def _token_embeddings(self) -> nn.Embedding:
+        return cast(nn.Embedding, self.transformer["wte"])
+
+    @property
+    def _position_embeddings(self) -> nn.Embedding:
+        return cast(nn.Embedding, self.transformer["wpe"])
+
+    @property
+    def _blocks(self) -> nn.ModuleList:
+        return cast(nn.ModuleList, self.transformer["h"])
+
+    @property
+    def _final_norm(self) -> nn.LayerNorm:
+        return cast(nn.LayerNorm, self.transformer["ln_f"])
 
     # -- introspection ------------------------------------------------------
 
     @property
     def weights_are_tied(self) -> bool:
-        return self.lm_head.weight is self.transformer["wte"].weight
+        return self.lm_head.weight is self._token_embeddings.weight
 
     def num_parameters(self, include_embeddings: bool = True) -> int:
         """Count trainable parameters.
@@ -60,8 +78,8 @@ class GPT(nn.Module):
         """
         total = sum(p.numel() for p in self.parameters() if p.requires_grad)
         if not include_embeddings:
-            total -= self.transformer["wpe"].weight.numel()
-            total -= self.transformer["wte"].weight.numel()
+            total -= self._position_embeddings.weight.numel()
+            total -= self._token_embeddings.weight.numel()
         return total
 
     # -- forward ------------------------------------------------------------
@@ -103,16 +121,16 @@ class GPT(nn.Module):
 
         positions = torch.arange(time, dtype=torch.long, device=idx.device)
 
-        token_embeddings = self.transformer["wte"](idx)          # [B, T, C]
-        position_embeddings = self.transformer["wpe"](positions)  # [T, C]
+        token_embeddings = self._token_embeddings(idx)  # [B, T, C]
+        position_embeddings = self._position_embeddings(positions)  # [T, C]
 
         # [T, C] broadcasts across the batch dimension.
         x = self.dropout(token_embeddings + position_embeddings)
 
-        for block in self.transformer["h"]:
+        for block in self._blocks:
             x = block(x)
 
-        x = self.transformer["ln_f"](x)
+        x = self._final_norm(x)
         logits = self.lm_head(x)
 
         loss: torch.Tensor | None = None
